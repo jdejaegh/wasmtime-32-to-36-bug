@@ -1,0 +1,16 @@
+[package]
+name = "person-plugin"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+wit-bindgen-rt = { version = "0.44.0", features = ["bitflags"] }
+
+[lib]
+crate-type = ["cdylib"]
+
+[package.metadata.component]
+package = "example:plugin"
+target = {path = "../wit", world = "person-plugin"}
+
+[package.metadata.component.dependencies]

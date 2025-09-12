@@ -1,0 +1,33 @@
+// Name of the package.  This will be used in the imports in Rust to link to the bindings.
+package example:plugin@0.1.0;
+
+// The world specifies the contract between the host and the plugin. All imports should be implemented by the Host.
+// All exports should be implemented by the Plugin.
+world person-plugin {
+  use imp.{res-person, res-person-mut};
+  import imp;
+  import printer;
+  export greet: func(who: borrow<res-person>);
+  export rename: func(who: borrow<res-person-mut>);
+}
+
+// Interface to provide some methods on a Person struct to the plugin. The Person will never be copied to the plugin
+// memory.  It will only be passed as a reference (u32).
+interface imp {
+
+  resource res-person-mut {
+    set-name: func(new: string);
+    get-name: func() -> string;
+    get-age: func() -> u32;
+  }
+
+  resource res-person {
+    get-name: func() -> string;
+    get-age: func() -> u32;
+  }
+}
+
+// This `print` function should be provided by the Host.
+interface printer {
+  print: func(s: string);
+}
