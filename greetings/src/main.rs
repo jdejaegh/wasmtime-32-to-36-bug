@@ -1,5 +1,5 @@
 use std::error::Error;
-use wasmtime::{component::{Component, Linker, Resource}, Config, Engine, Store};
+use wasmtime::{component::{Component, Linker, Resource, HasSelf}, Config, Engine, Store};
 
 pub fn get_wasm_component<T>(wasm_file: &str) -> Result<(Engine, Component, Linker<T>), Box<dyn Error>> {
     let mut config = Config::new();
@@ -62,8 +62,8 @@ impl Person {
             let self_res = Resource::new_borrow(res_idx);
 
             let mut store = Store::new(&engine, data);
-            person_bindings::example::plugin::imp::add_to_linker(&mut linker, |state| state).unwrap();
-            person_bindings::example::plugin::printer::add_to_linker(&mut linker, |state| state).unwrap();
+            person_bindings::example::plugin::imp::add_to_linker::<StatePerson<'_>, HasSelf<_>>(&mut linker, |state| state).unwrap();
+            person_bindings::example::plugin::printer::add_to_linker::<StatePerson<'_>, HasSelf<_>>(&mut linker, |state| state).unwrap();
 
             let bindings = person_bindings::PersonPlugin::instantiate(&mut store, &component, &linker).unwrap();
             bindings.call_greet(&mut store, self_res).unwrap()
@@ -82,8 +82,8 @@ impl Person {
             let self_res = Resource::new_borrow(res_idx);
 
             let mut store = Store::new(&engine, data);
-            person_bindings::example::plugin::imp::add_to_linker(&mut linker, |state: &mut StatePerson| state).unwrap();
-            person_bindings::example::plugin::printer::add_to_linker(&mut linker, |state: &mut StatePerson| state).unwrap();
+            person_bindings::example::plugin::imp::add_to_linker::<StatePerson<'_>, HasSelf<_>>(&mut linker, |state: &mut StatePerson| state).unwrap();
+            person_bindings::example::plugin::printer::add_to_linker::<StatePerson<'_>, HasSelf<_>>(&mut linker, |state: &mut StatePerson| state).unwrap();
 
             let bindings = person_bindings::PersonPlugin::instantiate(&mut store, &component, &linker).unwrap();
             bindings.call_rename(&mut store, self_res).unwrap()

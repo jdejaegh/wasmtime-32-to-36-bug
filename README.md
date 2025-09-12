@@ -33,3 +33,47 @@ Hello Bob (30 yo)
 Hello Alice (50 yo)
 Hello New Alice (50 yo)
 ```
+
+## Failing with `wasmtime 36.0.0`
+
+With `wasmtime 36.0.0`, it seems that `Store::new()` changed its implementation and requires `data` to be `'static`. 
+
+I only need the `Store` and `data` to live for the time of the function call.  
+They can be freed at the end of the scope.
+
+See the previous commit for the example working with `wasmtime 32.0.0`.
+
+```
+error[E0521]: borrowed data escapes outside of method
+  --> src/main.rs:65:29
+   |
+57 |     pub fn greet(&self) {
+   |                  -----
+   |                  |
+   |                  `self` is a reference that is only valid in the method body
+   |                  let's call the lifetime of this reference `'1`
+...
+65 |             let mut store = Store::new(&engine, data);
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                             |
+   |                             `self` escapes the method body here
+   |                             argument requires that `'1` must outlive `'static`
+
+error[E0521]: borrowed data escapes outside of method
+  --> src/main.rs:85:29
+   |
+77 |     pub fn rename(&mut self) {
+   |                   ---------
+   |                   |
+   |                   `self` is a reference that is only valid in the method body
+   |                   let's call the lifetime of this reference `'1`
+...
+85 |             let mut store = Store::new(&engine, data);
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                             |
+   |                             `self` escapes the method body here
+   |                             argument requires that `'1` must outlive `'static`
+
+For more information about this error, try `rustc --explain E0521`.
+error: could not compile `greetings` (bin "greetings") due to 2 previous errors
+```
