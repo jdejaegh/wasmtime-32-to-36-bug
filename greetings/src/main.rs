@@ -58,7 +58,7 @@ impl Person {
         if let Ok((engine, component, mut linker)) = plugin {
             let mut data = StatePerson::default();
             let res_idx = 0_u32;
-            data.person_table.insert(res_idx, MaybePerson::NotMut(self));
+            data.person_table.insert(res_idx, MaybePerson::NotMut(unsafe {std::mem::transmute::<&'_ Person, &'static Person>(self)}));
             let self_res = Resource::new_borrow(res_idx);
 
             let mut store = Store::new(&engine, data);
@@ -78,7 +78,7 @@ impl Person {
         if let Ok((engine, component, mut linker)) = plugin {
             let mut data = StatePerson::default();
             let res_idx = 0_u32;
-            data.person_table.insert(res_idx, MaybePerson::Mut(self));
+            data.person_table.insert(res_idx, MaybePerson::Mut(unsafe {std::mem::transmute::<&'_ mut Person, &'static mut Person>(self)}));
             let self_res = Resource::new_borrow(res_idx);
 
             let mut store = Store::new(&engine, data);

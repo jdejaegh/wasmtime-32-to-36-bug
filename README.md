@@ -41,7 +41,7 @@ With `wasmtime 36.0.0`, it seems that `Store::new()` changed its implementation 
 I only need the `Store` and `data` to live for the time of the function call.  
 They can be freed at the end of the scope.
 
-See the previous commit for the example working with `wasmtime 32.0.0`.
+See the previous commits for the example working with `wasmtime 32.0.0`.
 
 ```
 error[E0521]: borrowed data escapes outside of method
@@ -77,3 +77,20 @@ error[E0521]: borrowed data escapes outside of method
 For more information about this error, try `rustc --explain E0521`.
 error: could not compile `greetings` (bin "greetings") due to 2 previous errors
 ```
+
+## Workaround for `wasmtime 36.0.0`
+
+The solution found with `wasmtime 36.0.0` consist of using an unsafe call to `std::mem::transmute` to change the lifetime 
+of everything in the `Store` to `'static`. 
+
+This should be fine as the `Store` and `data` will go out of scope at the end of the function call.
+
+```diff
+     let mut data = StatePerson::default();
+     let res_idx = 0_u32;
+-    data.person_table.insert(res_idx, MaybePerson::NotMut(self));
++    data.person_table.insert(res_idx, MaybePerson::NotMut(unsafe {std::mem::transmute::<&'_ Person, &'static Person>(self)}));
+     let self_res = Resource::new_borrow(res_idx);
+
+     let mut store = Store::new(&engine, data);
+ ```
